@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Observable, Subscription, timer } from 'rxjs';
 
 @Component({
   selector: 'app-stopwatch',
@@ -7,43 +8,59 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 })
 export class StopwatchComponent implements OnInit, OnDestroy {
   counter: number = 0;
-  timerRef;
   running: boolean = false;
-  startText = 'Start';
+
+  startText: string = 'Start';
+
+  waitClickCount: number = 0;
+
+  subscription: Subscription;
 
   constructor() { }
 
   ngOnInit(): void {
   }
 
-  startTimer() {
+  start() {
     this.running = !this.running;
 
     if (this.running) {
       this.startText = 'Stop';
-      const startTime = Date.now() - this.counter;
-      
-      this.timerRef = setInterval(() => {
-        this.counter = Date.now() - startTime;
-      });
+
+      this.subscription = timer(0,1000).subscribe( 
+        _ => this.counter ++);
 
     } else {
       this.running = false;
+      this.counter = 0;
       this.startText = 'Start';
-      this.counter = undefined;
-      clearInterval(this.timerRef);
+      
+      this.subscription.unsubscribe();
     }
   }
 
-  resetTimer() {
-    this.running = false;
-    this.counter = 0;
-    clearInterval(this.timerRef);
-    this.startTimer();
+  reset() {
+    if(this.running){
+      this.counter = 0;
+    }
+  }
+
+  wait() {
+      this.waitClickCount++;
+      setTimeout(() => {
+          if (this.waitClickCount === 2 && this.running) {
+            this.subscription.unsubscribe();
+            this.running = false;
+            this.startText = 'Start';
+          }
+          this.waitClickCount = 0;
+      }, 300)
   }
 
   ngOnDestroy() {
-    clearInterval(this.timerRef);
+    if(this.subscription){
+      this.subscription.unsubscribe();
+    }
   }
 
 }

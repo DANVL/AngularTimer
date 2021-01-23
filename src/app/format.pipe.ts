@@ -5,8 +5,6 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class FormatPipe implements PipeTransform {
   transform(value: number, args?: any): string {
-    value = value > 999 ? (value - value % 1000) / 1000  : 0;
-    
     value = Number(value);
     let h = Math.floor(value / 3600);
     let m = Math.floor(value % 3600 / 60);
